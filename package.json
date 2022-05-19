@@ -20,7 +20,7 @@
     "sdk",
     "library"
   ],
-  "author": "cros",
+  "author": "Manvendra <manvendra@bussr.com>",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
