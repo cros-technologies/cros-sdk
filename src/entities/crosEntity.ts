@@ -1,10 +1,11 @@
 import { ShapeType } from "./shapeTypes";
 import { AdContent } from "../interfaces/adContent";
-import * as utils from '../entities/triggerClass';
+import * as utils from '@dcl/ecs-scene-utils'
 import { CrosService } from "../services/crosService";
 import { AdSpaceType } from "./adSpaceType";
 import {getUserAccount} from "@decentraland/EthereumController"
 import {getParcel} from '@decentraland/ParcelIdentity'
+import { setTimeout } from "@dcl/ecs-scene-utils";
 
 export class CrosEntity extends Entity {
     material: Material = new Material();
@@ -15,10 +16,10 @@ export class CrosEntity extends Entity {
 
     constructor(shapeType: ShapeType, transform: Transform, private adMaterialType: AdSpaceType) {
         super();
-        this.crosService = CrosService.getInstance();
+        this.crosService = CrosService.instance;
         this.adMaterialType = adMaterialType;
         if (shapeType == ShapeType.Gltf) {
-            this.addComponent(new GLTFShape(""));
+            this.addComponent(new GLTFShape('models/hondas800.glb'));
         } else {
             this.addComponent(this.getShapes(shapeType));
             this.addComponent(this.material);
@@ -26,13 +27,13 @@ export class CrosEntity extends Entity {
 
         this.addComponent(transform);
         this.addTriggerComponent()
-        this.adClickEvent()
-        this.displayAd()
+        this.adClickEvent() 
+        this.displayAd()      
     }
 
     addTriggerComponent() {
         this.addComponent(
-            new utils.TriggerComponent(new utils.TriggerSphereShape(15), {
+            new utils.TriggerComponent(new utils.TriggerBoxShape(new Vector3(5, 5, 5)), {
               onCameraEnter: async () => {
                   this.captureImpressionStartTime = new Date().getTime();
               },
@@ -41,10 +42,14 @@ export class CrosEntity extends Entity {
                        const userAccount = await getUserAccount()
                        const parcel = await getParcel()
                        let impressionData = {
-                           "Time Spent": impressionTime/1000,
-                            "User": userAccount,
-                            "Land Parcel": parcel.land.sceneJsonData.scene.base,
-                            "AdAssetId": "0x8C29E91D59c557a25e97d270E2e2373E67eccBf3"
+                         //  "Time Spent": impressionTime/1000,
+                          //  "User": userAccount,
+                            "adContentId": "adContentId",
+                            "bidId": "bidId",
+                            "campaignId": "campaignId",
+                            "adAssetId": "adAssetId",
+                            "metaverseAssetId": parcel.land.sceneJsonData.scene.base,
+                            "walletAddress": "walletAddress"
                        }
                        await this.crosService.addImpression(impressionData);
                        log("Log Impression")
@@ -52,7 +57,7 @@ export class CrosEntity extends Entity {
                     }
             })            
         )
-    }
+    }    
 
     adClickEvent() {
         this.addComponent(
@@ -60,9 +65,9 @@ export class CrosEntity extends Entity {
                 (e) => {
                     if (e.buttonId == 0) {
                       log("Clicked pointer")
-                      openExternalURL(this.adContent.click_url)
+                      openExternalURL("https://cros.network")
                     } else if (e.buttonId == 1) {
-                        teleportTo(this.adContent.metaverse_store_coordinates)                        
+                        teleportTo('-51,1')                        
                     } 
                   },
               {
@@ -75,7 +80,9 @@ export class CrosEntity extends Entity {
           )
     }
 
-    async displayAd(): Promise<boolean> {   
+    async displayAd() {
+        executeTask(async () => { 
+        log("getting ad content")
         this.adContent = await this.crosService.getAdToDisplay();
 
         if (this.adContent == null) {
@@ -84,8 +91,8 @@ export class CrosEntity extends Entity {
         
         if (this.adContent.content_type == 'image') {
             try {
-                log("getting ad content")
-                log(this.adContent)
+                
+
             this.material.albedoTexture = new Texture(this.getContentUrl(this.adContent))
             } catch (error) {
                 return false;
@@ -96,7 +103,8 @@ export class CrosEntity extends Entity {
         } else if(this.adContent.content_type == '3D') {
             this.removeComponent(GLTFShape);
             this.addComponent(new GLTFShape(this.adContent.content_url));
-        }            
+        } 
+    })           
     }
 
     getContentUrl(adContent: AdContent): string {

@@ -1,7 +1,7 @@
 import { ButtonType } from "./buttonType";
 import { CrosEntity } from "./crosEntity";
 
-export class CrosButton extends Entity {
+export class crosButton extends Entity {
     constructor(private buttonType: ButtonType, transform: Transform, private crosEntity: CrosEntity) {
         super();
        // const myMaterial = new Material()
@@ -9,8 +9,13 @@ export class CrosButton extends Entity {
        // myMaterial.metallic = 0.9
        // myMaterial.roughness = 0.1
        // this.addComponent(myMaterial)
+        const myMaterial = new Material()
+
+        myMaterial.albedoColor = new Color3(0, 0, 0) // ALPHATEST
+        myMaterial.alphaTest = 0.3
+
+       // this.addComponent(new PlaneShape())
         this.addComponent(transform)
-        this.addComponent(new TextShape(buttonType == ButtonType.VisitWebSite ? "Buy Now" : "Visit Store"))
         this.addComponent(
             new OnPointerDown(
                 (e) => {
@@ -24,10 +29,12 @@ export class CrosButton extends Entity {
                 button: ActionButton.PRIMARY,
                 showFeedback: true,
                 hoverText: "Click to buy now",
-                distance: 15
+                distance: 20
               }
             )
           )
+        
+        this.addComponent(new TextShape(buttonType == ButtonType.VisitWebSite ? "Buy Now" : "Visit Store"))
         
     }    
 }
