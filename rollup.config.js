@@ -1,20 +1,20 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
+import { apiExtractor } from "rollup-plugin-api-extractor";
 import { terser } from 'rollup-plugin-terser';
+import packageJson from './package.json'
 
-const packageJson = require('./package.json');
 const PROD = !!process.env.CI
 
 export default {
   input: 'src/index.ts',
   context: 'globalThis',
-  external: /(@decentraland\/|@dcl\/)/,
+  external: [/@dcl\//, /@decentraland\//],
   output: [
     {
       file: packageJson.main,
       format: 'amd',
-      sourcemap: true,
       amd: {
         id: packageJson.name
       },
@@ -25,11 +25,30 @@ export default {
       preferBuiltins: false,
       browser: true
     }),
-    typescript({ tsconfig: './tsconfig.json' }),
+    typescript({
+      tsconfig: './tsconfig.json',
+      sourceMap: false,
+      compilerOptions: {
+        sourceMap: false,
+        inlineSourceMap: false,
+        inlineSources: false
+      },
+    }),
     commonjs({
-      include: [/node_modules/],
+      exclude: 'node_modules',
       ignoreGlobal: true,
     }),
-    PROD && terser({ format: { comments: false } }),
+    true && terser({ format: { comments: false } }),
+    apiExtractor({
+      configFile: './api-extractor.json',
+      configuration: {
+        projectFolder: '.',
+        compiler: {
+          tsconfigFilePath: "<projectFolder>/tsconfig.json",
+        },
+      },
+      local: !PROD,
+      cleanUpRollup: false
+    })
   ],
 };

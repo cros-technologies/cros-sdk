@@ -7,12 +7,10 @@
   ],
   "compilerOptions": {
     "module": "ESNext",
-    "removeComments": true,
     "declaration": true,
-    "declarationDir": ".",
-    "outDir": "dist",    
-    "sourceMap": true,
-    "inlineSourceMap": false,
+    "declarationDir": "./types",
+    "declarationMap": true,
+    "outDir": "dist"
   },
   "extends": "./node_modules/decentraland-ecs/types/tsconfig.json"
 }
